@@ -1,0 +1,26 @@
+{
+  "name": "ngx-cropperjs-wrapper",
+  "version": "0.0.7",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/polakdominik/ngx-cropperjs-wrapper.git"
+  },
+  "license": "MIT",
+  "keywords": [
+    "ngx",
+    "angular",
+    "angular6",
+    "angular-library",
+    "angular-component",
+    "angular-wrapper",
+    "cropperjs",
+    "image-cropper"
+  ],
+  "peerDependencies": {
+    "@angular/common": "^6.0.0-rc.0 || ^6.0.0",
+    "@angular/core": "^6.0.0-rc.0 || ^6.0.0"
+  },
+  "dependencies": {
+    "cropperjs": "^1.4.0"
+  }
+}

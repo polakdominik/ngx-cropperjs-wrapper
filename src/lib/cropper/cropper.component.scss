@@ -1,0 +1,22 @@
+$cropbox-color: #eee;
+
+.cropper-component {
+  img {
+    max-width: 100%;
+    max-height: 100%;
+  }
+}
+
+::ng-deep {
+  @import '~cropperjs/dist/cropper';
+
+  .cropper-view-box {
+    outline-color: $cropbox-color;
+  }
+
+  .cropper-line,
+  .cropper-point,
+  .cropper-point.point-se::before {
+    background-color: $cropbox-color;
+  }
+}

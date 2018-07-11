@@ -1,0 +1,3 @@
+<div class="cropper-component" *ngIf="dataUrl">
+  <img #image alt="image" [src]="dataUrl" (load)="onImageLoad($event)"/>
+</div>
