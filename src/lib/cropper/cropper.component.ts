@@ -59,6 +59,17 @@ export class CropperComponent implements OnDestroy, ControlValueAccessor {
     reader.readAsDataURL(this.originalFile);
   }
 
+  @Input('imageUrl') set imageUrl(value: string) {
+    delete this.dataUrl;
+    this.destroyCropperIfExists();
+
+    if (!value) {
+      return;
+    }
+
+    this.dataUrl = value;
+  }
+
   dataUrl: string;
   private cropper: Cropper;
   private isReady: boolean;
@@ -163,9 +174,11 @@ export class CropperComponent implements OnDestroy, ControlValueAccessor {
   }
 
   private updateFile() {
+    const urlParams = this.dataUrl.split('/');
+
     this.cropper.getCroppedCanvas().toBlob((blob: any) => {
       blob.lastModifiedDate = new Date();
-      blob.name = this.originalFile.name;
+      blob.name = this.originalFile ? this.originalFile.name : urlParams[urlParams.length - 1];
       this.fileChange.emit(blob);
     });
   }
