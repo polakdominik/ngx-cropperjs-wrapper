@@ -1,4 +1,5 @@
-import { Component, EventEmitter, Input, OnDestroy, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnDestroy, Output, forwardRef } from '@angular/core';
+import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import Cropper from 'cropperjs';
 
 export interface CropperOptions extends Cropper.Options {
@@ -9,9 +10,16 @@ export interface CropperOptions extends Cropper.Options {
 @Component({
   selector: 'lib-cropper',
   templateUrl: './cropper.component.html',
-  styleUrls: ['./cropper.component.scss']
+  styleUrls: ['./cropper.component.scss'],
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => CropperComponent),
+      multi: true
+    }
+  ],
 })
-export class CropperComponent implements OnDestroy {
+export class CropperComponent implements OnDestroy, ControlValueAccessor {
 
   @Output() crop = new EventEmitter<CustomEvent>();
   @Output() cropMove = new EventEmitter<CustomEvent>();
@@ -19,7 +27,6 @@ export class CropperComponent implements OnDestroy {
   @Output() cropEnd = new EventEmitter<CustomEvent>();
   @Output() ready = new EventEmitter<CustomEvent>();
   @Output() zoom = new EventEmitter<CustomEvent>();
-
   @Output() init = new EventEmitter<Cropper>();
   @Output() fail = new EventEmitter<Error>();
   @Output() fileChange = new EventEmitter<File>();
@@ -54,13 +61,31 @@ export class CropperComponent implements OnDestroy {
 
   dataUrl: string;
   private cropper: Cropper;
+  private isReady: boolean;
   private originalFile: File;
+  private data = {} as Cropper.SetDataOptions;
+
+  propagateChange = (value: Cropper.SetDataOptions) => {};
+
+  writeValue(value: Cropper.SetDataOptions) {
+    this.data = value;
+
+    if (this.data && this.cropper) {
+      this.cropper.setData(this.data);
+    }
+  }
+
+  registerOnChange(fn) {
+    this.propagateChange = fn;
+  }
+
+  registerOnTouched() {}
 
   ngOnDestroy() {
     this.destroyCropperIfExists();
   }
 
-  onImageLoad(event: Event): void {
+  onImageLoad(event: Event) {
     const img = event.target as HTMLImageElement;
 
     this.destroyCropperIfExists();
@@ -72,6 +97,7 @@ export class CropperComponent implements OnDestroy {
       return;
     }
 
+    this.isReady = false;
     this.cropper = new Cropper(img, Object.assign({
       crop: this.onCrop.bind(this),
       cropmove: this.onCropMove.bind(this),
@@ -89,6 +115,10 @@ export class CropperComponent implements OnDestroy {
       this.correctCropArea();
     }
 
+    if (this.isReady) {
+      this.update();
+    }
+
     this.crop.emit(event);
   }
 
@@ -97,26 +127,38 @@ export class CropperComponent implements OnDestroy {
       this.correctCropArea();
     }
 
+    this.update();
     this.cropMove.emit(event);
   }
 
   private onCropStart(event: CustomEvent) {
+    this.update();
     this.cropStart.emit(event);
   }
 
   private onCropEnd(event: CustomEvent) {
     this.correctCropArea();
     this.updateFile();
+    this.update();
     this.cropEnd.emit(event);
   }
 
   private onReady(event: CustomEvent) {
-    this.correctCropArea();
+    if (this.data) {
+      this.cropper.setData(this.data);
+      this.correctCropArea();
+    } else {
+      this.correctCropArea();
+      this.update();
+    }
+
+    this.isReady = true;
     this.ready.emit(event);
     this.updateFile();
   }
 
   private onZoom(event: CustomEvent) {
+    this.update();
     this.zoom.emit(event);
   }
 
@@ -136,6 +178,11 @@ export class CropperComponent implements OnDestroy {
       data.height = Math.max(data.height, this.options.minCropHeight || 0);
       this.cropper.setData(data);
     }
+  }
+
+  private update() {
+    this.data = this.cropper.getData();
+    this.propagateChange(this.data);
   }
 
   private destroyCropperIfExists() {

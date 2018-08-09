@@ -81,6 +81,13 @@ export class AppComponent {
 
 }
 ```
+### Example with ngModel
+```
+<h1>Angular cropperjs demo</h1>
+<input type="file" (change)="onFilePick($event)"/>
+<lib-cropper [imageFile]="upload" [options]="options" [(ngModel)]="data" name="cropper"></lib-cropper>
+<p>{{ data | json }}</p>
+```
 ### Events
 * This wrapper supports all events cropper.js emits
 * You can bind to these events the Angular way
