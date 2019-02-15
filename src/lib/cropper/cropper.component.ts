@@ -1,6 +1,7 @@
 import { Component, EventEmitter, Input, OnDestroy, Output, forwardRef } from '@angular/core';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import Cropper from 'cropperjs';
+import { SafeUrl } from '@angular/platform-browser';
 
 export interface CropperOptions extends Cropper.Options {
   minCropWidth: number;
@@ -70,13 +71,13 @@ export class CropperComponent implements OnDestroy, ControlValueAccessor {
     this.dataUrl = value;
   }
 
-  dataUrl: string;
+  dataUrl: string|SafeUrl;
   private cropper: Cropper;
   private isReady: boolean;
   private originalFile: File;
   private data = {} as Cropper.SetDataOptions;
 
-  propagateChange = (value: Cropper.SetDataOptions) => {};
+  propagateChange = (value: Cropper.SetDataOptions) => value;
 
   writeValue(value: Cropper.SetDataOptions) {
     this.data = value;
@@ -174,11 +175,17 @@ export class CropperComponent implements OnDestroy, ControlValueAccessor {
   }
 
   private updateFile() {
-    const urlParams = this.dataUrl.split('/');
+    let name = 'cropped_file';
+
+    if (typeof this.dataUrl === 'string') {
+      const urlParams = this.dataUrl.split('/');
+      name = urlParams[urlParams.length - 1];
+    }
+
 
     this.cropper.getCroppedCanvas().toBlob((blob: any) => {
       blob.lastModifiedDate = new Date();
-      blob.name = this.originalFile ? this.originalFile.name : urlParams[urlParams.length - 1];
+      blob.name = this.originalFile ? this.originalFile.name : name;
       this.fileChange.emit(blob);
     });
   }
