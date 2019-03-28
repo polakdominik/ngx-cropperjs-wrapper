@@ -3,9 +3,15 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 import Cropper from 'cropperjs';
 import { SafeUrl } from '@angular/platform-browser';
 
+export interface CropperOutputOptions {
+  mimeType: string;
+  qualityArgument: number;
+}
+
 export interface CropperOptions extends Cropper.Options {
   minCropWidth: number;
   minCropHeight: number;
+  outputOptions: CropperOutputOptions;
 }
 
 @Component({
@@ -183,11 +189,14 @@ export class CropperComponent implements OnDestroy, ControlValueAccessor {
     }
 
 
+    const mimeType = (this.options.outputOptions && this.options.outputOptions.mimeType) || 'image/png';
+    const qualityArgument = (this.options.outputOptions && this.options.outputOptions.qualityArgument) || 0.9;
+
     this.cropper.getCroppedCanvas().toBlob((blob: any) => {
       blob.lastModifiedDate = new Date();
       blob.name = this.originalFile ? this.originalFile.name : name;
       this.fileChange.emit(blob);
-    });
+    }, mimeType, qualityArgument);
   }
 
   private correctCropArea() {
