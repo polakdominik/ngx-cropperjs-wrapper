@@ -8,7 +8,7 @@ This angular library is a wrapper of Javascript image cropper
 
 1. Install package
 ```
-npm install ngx-cropper-js-wrapper
+npm install ngx-cropperjs-wrapper
 ```
 2. Import module
 ```
